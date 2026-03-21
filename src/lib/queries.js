@@ -133,8 +133,125 @@ function normalizePatient(dbPatient, sessions) {
 }
 
 // ============================================
-// WRITE OPERATIONS
+// SHARE OPERATIONS
 // ============================================
+
+export async function createShareInvite(patientId, email, accessType, sessionId = null) {
+  const { data, error } = await supabase
+    .from('patient_shares')
+    .insert({
+      patient_id: patientId,
+      shared_with_email: email,
+      access_type: accessType,
+      session_id: sessionId,
+      status: 'pending'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchSharesForPatient(patientId) {
+  const { data, error } = await supabase
+    .from('patient_shares')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function revokeShare(shareId) {
+  const { error } = await supabase
+    .from('patient_shares')
+    .update({ status: 'revoked' })
+    .eq('id', shareId);
+
+  if (error) throw error;
+}
+
+export async function fetchSharedDataByToken(token) {
+  const { data: share, error: shareErr } = await supabase
+    .from('patient_shares')
+    .select('*, patients(*)')
+    .eq('token', token)
+    .neq('status', 'revoked')
+    .single();
+
+  if (shareErr) throw shareErr;
+
+  let sharedData = {
+    patient: {
+      name: share.patients.name,
+      email: share.patients.email,
+    },
+    accessType: share.access_type,
+  };
+
+  if (share.access_type === 'individual_session') {
+    const session = await fetchSessionWithInsights(share.session_id);
+    sharedData.sessions = [session];
+  } else {
+    sharedData.sessions = await fetchSessionsForPatient(share.patient_id);
+  }
+
+  return sharedData;
+}
+
+async function fetchSessionWithInsights(sessionId) {
+  const { data: session, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .single();
+
+  if (error) throw error;
+
+  const { data: insights } = await supabase
+    .from('insights')
+    .select('*')
+    .eq('session_id', session.id)
+    .maybeSingle();
+
+  let actionsForPatient = [];
+  if (insights) {
+    const { data: actions } = await supabase
+      .from('patient_actions')
+      .select('*')
+      .eq('insight_id', insights.id)
+      .order('sort_order', { ascending: true });
+    actionsForPatient = (actions || []).map(a => ({
+      icon: a.icon,
+      text: a.text,
+      category: a.category,
+    }));
+  }
+
+  return {
+    id: session.id,
+    date: session.date,
+    transcription: session.transcription,
+    insights: insights
+      ? {
+          confidence: insights.confidence,
+          riskLevel: insights.risk_level,
+          summary: insights.summary,
+          plainSummary: insights.plain_summary,
+          simpleSummary: insights.simple_summary,
+          differentials: insights.differentials,
+          medicationFlags: insights.medication_flags || [],
+          wearableNote: insights.wearable_note,
+          environmentalNote: insights.environmental_note,
+          actionsForDoctor: insights.actions_for_doctor || [],
+          actionsForPatient,
+          delta: insights.delta,
+        }
+      : null,
+  };
+}
 
 // Create a new session (no insights yet)
 export async function createSession(patientId) {

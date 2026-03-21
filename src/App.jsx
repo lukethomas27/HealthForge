@@ -1,11 +1,13 @@
 // HealthForge — Main App Shell (Supabase-backed)
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { fetchFirstDoctor, fetchPatientsForDoctor, fetchPatient } from './lib/queries';
 import LandingPage from './components/LandingPage';
 import DoctorDashboard from './components/DoctorDashboard';
 import PatientDetailView from './components/PatientDetailView';
 import PatientDashboard from './components/PatientDashboard';
+import InvitePage from './components/InvitePage';
 
 const STYLES = `
 @keyframes fadeIn {
@@ -155,9 +157,17 @@ export default function App() {
   return (
     <>
       <style>{STYLES}</style>
-      <div key={page} style={{ animation: 'fadeIn 150ms ease' }}>
-        {renderPage()}
-      </div>
+      <Routes>
+        <Route path="/invite/:token" element={<InvitePage />} />
+        <Route
+          path="*"
+          element={
+            <div key={page} style={{ animation: 'fadeIn 150ms ease' }}>
+              {renderPage()}
+            </div>
+          }
+        />
+      </Routes>
     </>
   );
 }

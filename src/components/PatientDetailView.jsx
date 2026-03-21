@@ -140,22 +140,24 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
   const handleGenerateInsights = useCallback(
     async (session) => {
       setLoadingSessions((prev) => ({ ...prev, [session.id]: true }));
-      await new Promise((r) => setTimeout(r, 1500));
-      const insights = generateInsights(
-        session.transcription,
-        patient,
-        patient.sessions
-      );
       try {
+        const insights = await generateInsights(
+          session.transcription,
+          patient,
+          patient.sessions
+        );
         await saveInsights(session.id, insights);
+        
+        const updatedSessions = patient.sessions.map((s) =>
+          s.id === session.id ? { ...s, insights } : s
+        );
+        onUpdatePatient({ ...patient, sessions: updatedSessions });
       } catch (err) {
-        console.error('Error saving insights:', err);
+        console.error('Error generating insights:', err);
+        // Maybe show an error to the user here
+      } finally {
+        setLoadingSessions((prev) => ({ ...prev, [session.id]: false }));
       }
-      const updatedSessions = patient.sessions.map((s) =>
-        s.id === session.id ? { ...s, insights } : s
-      );
-      onUpdatePatient({ ...patient, sessions: updatedSessions });
-      setLoadingSessions((prev) => ({ ...prev, [session.id]: false }));
     },
     [patient, onUpdatePatient]
   );

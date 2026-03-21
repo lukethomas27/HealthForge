@@ -166,6 +166,7 @@ export default function App() {
             patient={selectedPatient}
             onBack={() => navigate('doctor-dashboard')}
             onUpdatePatient={handleUpdatePatient}
+            onLogout={handleLogout}
           />
         ) : null;
       case 'patient-dashboard':

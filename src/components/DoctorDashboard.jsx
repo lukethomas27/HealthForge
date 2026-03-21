@@ -28,6 +28,14 @@ function confidenceBadgeClasses(score) {
   return 'border-l-red-400 bg-red-50 text-red-800';
 }
 
+function riskBadgeClasses(level) {
+  const l = (level || '').toLowerCase();
+  if (l === 'low') return 'bg-teal-50 text-teal-700 border-teal-400';
+  if (l === 'medium') return 'bg-amber-50 text-amber-700 border-amber-400';
+  if (l === 'high') return 'bg-red-50 text-red-700 border-red-400';
+  return 'bg-gray-50 text-gray-500 border-gray-300';
+}
+
 export default function DoctorDashboard({ doctor, patients, onSelectPatient, onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,7 +48,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
       {/* Top navigation bar */}
       <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
+          <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
             <span className="animate-pulse" style={{ color: '#00C9A7', fontSize: '12px' }}>●</span>
             <span
               className="font-bold text-lg"
@@ -48,7 +56,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
             >
               HealthForge
             </span>
-          </div>
+          </button>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5" style={{ color: '#0B1929' }}>
               <User size={16} />
@@ -107,6 +115,12 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
             {filteredPatients.map((patient) => {
               const latestSession = getLatestSession(patient.sessions);
               const confidence = getConfidence(latestSession);
+              let riskLevel = latestSession?.insights?.riskLevel || null;
+              if (!riskLevel && confidence !== null) {
+                if (confidence < 70) riskLevel = 'high';
+                else if (confidence < 85) riskLevel = 'medium';
+                else riskLevel = 'low';
+              }
               const sessionCount = patient.sessions ? patient.sessions.length : 0;
               const medCount = patient.medications ? patient.medications.length : 0;
 
@@ -119,12 +133,19 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
                   <div className="flex items-center">
                     {/* Left section */}
                     <div className="flex-1">
-                      <p
-                        className="text-lg font-bold"
-                        style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-                      >
-                        {patient.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p
+                          className="text-lg font-bold"
+                          style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+                        >
+                          {patient.name}
+                        </p>
+                        {riskLevel && (
+                          <span className={`border-l-4 px-2 py-0.5 text-xs font-medium rounded-r ${riskBadgeClasses(riskLevel)}`}>
+                            {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500" style={{ fontFamily: 'system-ui, sans-serif' }}>
                         {patient.age} years old &middot; {patient.city}
                       </p>

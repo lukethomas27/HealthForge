@@ -65,7 +65,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
       </nav>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-6 py-8 pb-24">
         {/* Header row */}
         <div className="flex justify-between items-center mb-6">
           <h1

@@ -155,7 +155,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
       <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF' }}>
         {/* Nav */}
         <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
-          <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
+          <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
             <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
               <span className="inline-block w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#00C9A7' }} />
               <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
@@ -210,7 +210,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
     >
       {/* Navigation */}
       <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
           <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
@@ -248,245 +248,225 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
         <div className="border-t-2 border-teal-400 w-full" />
       </nav>
 
-      {/* Page content */}
-      <div className="max-w-2xl mx-auto px-6 py-8 pb-24">
-        {/* Section 1: How are you doing? */}
-        <div className="bg-white shadow-md rounded-lg p-8">
-          <div className="flex justify-between items-start">
-            <h1
-              className="text-2xl mb-3"
-              style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-            >
-              Hi, {firstName}.
-            </h1>
-            {mostRecent && (
-              <button
-                onClick={() => openShareModal(mostRecent.id, mostRecent.date)}
-                className="text-gray-400 hover:text-teal-600 transition-colors"
-                title="Share this visit"
+      {/* Page content — 3-column layout */}
+      <div className="max-w-7xl mx-auto px-6 py-8 pb-24 flex flex-col lg:flex-row gap-6">
+
+        {/* ========== LEFT PANEL (sticky) ========== */}
+        <div className="lg:w-[28%] lg:sticky lg:top-20 self-start">
+          {/* Greeting card */}
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <div className="flex justify-between items-start">
+              <h1
+                className="text-2xl mb-3"
+                style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
               >
-                <Share2 size={20} />
-              </button>
-            )}
-          </div>
-
-          {riskContent && (
-            <div className="flex items-center gap-2 mb-3">
-              {riskContent.icon}
-              <span
-                className="text-lg leading-relaxed"
-                style={{ color: '#0B1929' }}
-              >
-                {riskContent.message}
-              </span>
+                Hi, {firstName}.
+              </h1>
+              {mostRecent && (
+                <button
+                  onClick={() => openShareModal(mostRecent.id, mostRecent.date)}
+                  className="text-gray-400 hover:text-teal-600 transition-colors"
+                  title="Share this visit"
+                >
+                  <Share2 size={20} />
+                </button>
+              )}
             </div>
-          )}
 
-          {mostRecentInsights?.plainSummary && (
-            <p className="text-lg leading-relaxed text-gray-600 mb-4">
-              {mostRecentInsights.plainSummary}
-            </p>
-          )}
-
-          {mostRecentInsights?.medicationFlags?.length > 0 && (
-            <div className="mt-4 mb-4 space-y-2">
-              {mostRecentInsights.medicationFlags.map((flag, i) => (
-                <div key={i} className="flex items-start gap-2 bg-amber-50 border-l-4 border-amber-400 rounded-r p-3">
-                  <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-amber-800">{flag}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Highlighted Doctor Verification */}
-          {mostRecentInsights?.doctorNote && (
-            <div className="bg-[#0B1929] text-white p-5 rounded-lg shadow-lg mb-6 border-l-4 border-teal-400">
-              <div className="flex items-center gap-2 mb-2">
-                <UserCheck className="text-teal-400" size={18} />
-                <span className="text-xs font-bold uppercase tracking-widest text-teal-400">
-                  Doctor Verified Guidance
+            {riskContent && (
+              <div className="flex items-center gap-2 mb-3">
+                {riskContent.icon}
+                <span
+                  className="text-base leading-relaxed"
+                  style={{ color: '#0B1929' }}
+                >
+                  {riskContent.message}
                 </span>
               </div>
-              <p className="text-base italic leading-relaxed font-medium">
-                &quot;{mostRecentInsights.doctorNote}&quot;
+            )}
+
+            {mostRecentInsights?.plainSummary && (
+              <p className="text-sm leading-relaxed text-gray-600 mb-3">
+                {mostRecentInsights.plainSummary}
               </p>
-            </div>
-          )}
-
-          {mostRecent?.date && (
-            <p className="text-sm text-gray-400">
-              Last visit: {formatDate(mostRecent.date)} with Dr. Emily Chen
-            </p>
-          )}
-        </div>
-
-        {/* Your Health Profile */}
-        <div className="mt-6 bg-white shadow-md rounded-lg p-6">
-          <h2
-            className="text-xl font-bold mb-4"
-            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-          >
-            Your health profile
-          </h2>
-
-          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Allergies</p>
-          <div className="flex flex-wrap gap-1 mb-4">
-            {(patient.allergies || []).map((a, i) => (
-              <span key={i} className="border border-red-300 text-red-700 bg-red-50 rounded px-2 py-0.5 text-sm">{a}</span>
-            ))}
-            {(!patient.allergies || patient.allergies.length === 0) && (
-              <span className="text-sm text-gray-400">None recorded</span>
             )}
-          </div>
 
-          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Current Medications</p>
-          <div className="space-y-1">
-            {(patient.medications || []).map((m, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="text-gray-400">💊</span> {m}
+            {mostRecentInsights?.medicationFlags?.length > 0 && (
+              <div className="mt-3 mb-3 space-y-2">
+                {mostRecentInsights.medicationFlags.map((flag, i) => (
+                  <div key={i} className="flex items-start gap-2 bg-amber-50 border-l-4 border-amber-400 rounded-r p-2">
+                    <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-xs text-amber-800">{flag}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            {(!patient.medications || patient.medications.length === 0) && (
-              <span className="text-sm text-gray-400">None recorded</span>
+            )}
+
+            {/* Doctor Verification */}
+            {mostRecentInsights?.doctorNote && (
+              <div className="bg-[#0B1929] text-white p-4 rounded-lg shadow-lg mb-3 border-l-4 border-teal-400">
+                <div className="flex items-center gap-2 mb-1">
+                  <UserCheck className="text-teal-400" size={14} />
+                  <span className="text-xs font-bold uppercase tracking-widest text-teal-400">
+                    Doctor Verified
+                  </span>
+                </div>
+                <p className="text-sm italic leading-relaxed">
+                  &quot;{mostRecentInsights.doctorNote}&quot;
+                </p>
+              </div>
+            )}
+
+            {mostRecent?.date && (
+              <p className="text-xs text-gray-400">
+                Last visit: {formatDate(mostRecent.date)} with Dr. Emily Chen
+              </p>
             )}
           </div>
-        </div>
 
-        {/* Your Wellness Data */}
-        <div className="mt-4 bg-white shadow-md rounded-lg p-6">
-          <h2
-            className="text-xl font-bold mb-4"
-            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-          >
-            Your wellness data
-          </h2>
-
-          <div className="flex items-center gap-2 mb-3">
-            <Activity size={16} className="text-teal-600" />
-            <h3 className="text-sm font-semibold" style={{ color: '#0B1929' }}>From Your Devices</h3>
-          </div>
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Resting HR</span>
-              <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>68 bpm</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Sleep average</span>
-              <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>7.1 hrs</span>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-100 my-4" />
-
-          <div className="flex items-center gap-2 mb-3">
-            <Wind size={16} className="text-teal-600" />
-            <h3 className="text-sm font-semibold" style={{ color: '#0B1929' }}>Today&apos;s Environment</h3>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Air Quality</span>
-              <span className="text-teal-600 text-sm font-medium">Good (AQI 42)</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Pollen</span>
-              <span className="text-amber-600 text-sm font-medium">Moderate</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-3">Based on your location: {patient.city}</p>
-        </div>
-
-        {/* Section 2: Today's Action Plan */}
-        {actions.length > 0 && (
-          <div className="mt-8">
+          {/* Health Profile */}
+          <div className="mt-4 bg-white shadow-md rounded-lg p-6">
             <h2
-              className="text-xl font-bold mb-2"
+              className="text-sm font-semibold mb-3"
               style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
             >
-              What to do today
+              Your health profile
             </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Based on your most recent visit
-            </p>
 
-            <div className="space-y-2">
-              {actions.map((action, idx) => {
-                const cat = action.category || 'followup';
-                const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.followup;
-                const isWarning = cat === 'warning';
-                const isChecked = !!checkedItems[idx];
+            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Allergies</p>
+            <div className="flex flex-wrap gap-1 mb-4">
+              {(patient.allergies || []).map((a, i) => (
+                <span key={i} className="border border-red-300 text-red-700 bg-red-50 rounded px-2 py-0.5 text-xs">{a}</span>
+              ))}
+              {(!patient.allergies || patient.allergies.length === 0) && (
+                <span className="text-xs text-gray-400">None recorded</span>
+              )}
+            </div>
 
-                return (
-                  <div
-                    key={idx}
-                    className={`flex items-start gap-4 bg-white shadow-sm rounded-r-lg p-4 border-l-4 ${style.border} ${
-                      isWarning ? 'bg-red-50/50' : ''
-                    }`}
-                    style={
-                      isWarning
-                        ? { backgroundColor: 'rgba(254, 242, 242, 0.5)' }
-                        : {}
-                    }
-                  >
-                    {/* Checkbox */}
-                    {!isWarning ? (
-                      <button
-                        onClick={() => toggleChecked(idx)}
-                        className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded-sm flex items-center justify-center border-2 transition-colors ${
-                          isChecked ? 'bg-teal-500 border-teal-500' : ''
-                        }`}
-                        style={!isChecked ? { borderColor: '#0B1929' } : {}}
-                        aria-label={isChecked ? 'Uncheck item' : 'Check item'}
-                      >
-                        {isChecked && (
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M2 6L5 9L10 3"
-                              stroke="white"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    ) : (
-                      <div className="w-5 flex-shrink-0" />
-                    )}
-
-                    {/* Icon + Text */}
-                    <div className="flex-1 min-w-0 flex items-start gap-3">
-                      <span className="text-lg flex-shrink-0 w-6 text-center">
-                        {style.icon}
-                      </span>
-                      <span
-                        className={`text-base leading-relaxed break-words ${
-                          isWarning ? 'font-medium' : ''
-                        } ${isChecked ? 'line-through text-gray-400' : ''}`}
-                        style={{ color: isWarning ? '#0B1929' : undefined }}
-                      >
-                        {action.text}
-                      </span>
-                    </div>
-
-                    {/* Category badge */}
-                    <span className="text-xs text-gray-400 uppercase tracking-wider flex-shrink-0 mt-1">
-                      {cat}
-                    </span>
-                  </div>
-                );
-              })}
+            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Current Medications</p>
+            <div className="space-y-1">
+              {(patient.medications || []).map((m, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                  <span className="text-gray-400">💊</span> {m}
+                </div>
+              ))}
+              {(!patient.medications || patient.medications.length === 0) && (
+                <span className="text-xs text-gray-400">None recorded</span>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Section 3: My Health History */}
-        <div className="mt-8">
+          {/* Wellness Data */}
+          <div className="mt-4 bg-white shadow-md rounded-lg p-6">
+            <h2
+              className="text-sm font-semibold mb-3"
+              style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+            >
+              Your wellness data
+            </h2>
+
+            <div className="flex items-center gap-2 mb-2">
+              <Activity size={14} className="text-teal-600" />
+              <h3 className="text-xs font-semibold" style={{ color: '#0B1929' }}>From Your Devices</h3>
+            </div>
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Resting HR</span>
+                <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>68 bpm</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Sleep average</span>
+                <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>7.1 hrs</span>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 my-3" />
+
+            <div className="flex items-center gap-2 mb-2">
+              <Wind size={14} className="text-teal-600" />
+              <h3 className="text-xs font-semibold" style={{ color: '#0B1929' }}>Today&apos;s Environment</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Air Quality</span>
+                <span className="text-teal-600 text-sm font-medium">Good (AQI 42)</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Pollen</span>
+                <span className="text-amber-600 text-sm font-medium">Moderate</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">{patient.city}</p>
+          </div>
+
+          {/* Family Sharing / Manage Access */}
+          {shares.length > 0 && (
+            <div className="mt-4 bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
+              <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+                <h2
+                  className="text-sm font-bold flex items-center gap-2"
+                  style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+                >
+                  <Shield className="text-teal-600" size={16} />
+                  Manage Access
+                </h2>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {shares.map((share) => (
+                  <div
+                    key={share.id}
+                    className="p-3 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${share.status === 'revoked' ? 'bg-gray-100 text-gray-400' : 'bg-teal-50 text-teal-600'}`}
+                      >
+                        <User size={14} />
+                      </div>
+                      <div>
+                        <div
+                          className={`text-sm font-medium ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}
+                        >
+                          {share.shared_with_email}
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <span>
+                            {share.access_type === 'full_history'
+                              ? 'Full History'
+                              : 'Single Visit'}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          <span
+                            className={
+                              share.status === 'revoked'
+                                ? 'text-red-400'
+                                : 'text-teal-600'
+                            }
+                          >
+                            {share.status.charAt(0).toUpperCase() +
+                              share.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {share.status !== 'revoked' && (
+                      <button
+                        onClick={() => handleRevoke(share.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Revoke access"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ========== CENTER PANEL — Visit History ========== */}
+        <div className="lg:w-[44%]">
           <h2
             className="text-xl font-bold mb-4"
             style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
@@ -669,70 +649,92 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           </div>
         </div>
 
-        {/* Section 4: Family Sharing Settings */}
-        {shares.length > 0 && (
-          <div className="mt-12 bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+        {/* ========== RIGHT PANEL (sticky) — Action Plan Checklist ========== */}
+        <div className="lg:w-[28%] lg:sticky lg:top-20 self-start">
+          {actions.length > 0 && (
+            <div>
               <h2
-                className="text-lg font-bold flex items-center gap-2"
+                className="text-xl font-bold mb-2"
                 style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
               >
-                <Shield className="text-teal-600" size={20} />
-                Manage Access
+                What to do today
               </h2>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {shares.map((share) => (
-                <div
-                  key={share.id}
-                  className="p-4 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
+              <p className="text-sm text-gray-500 mb-4">
+                Based on your most recent visit
+              </p>
+
+              <div className="space-y-2">
+                {actions.map((action, idx) => {
+                  const cat = action.category || 'followup';
+                  const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.followup;
+                  const isWarning = cat === 'warning';
+                  const isChecked = !!checkedItems[idx];
+
+                  return (
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${share.status === 'revoked' ? 'bg-gray-100 text-gray-400' : 'bg-teal-50 text-teal-600'}`}
+                      key={idx}
+                      className={`flex items-start gap-3 bg-white shadow-sm rounded-r-lg p-3 border-l-4 ${style.border} ${
+                        isWarning ? 'bg-red-50/50' : ''
+                      }`}
+                      style={
+                        isWarning
+                          ? { backgroundColor: 'rgba(254, 242, 242, 0.5)' }
+                          : {}
+                      }
                     >
-                      <User size={18} />
-                    </div>
-                    <div>
-                      <div
-                        className={`font-medium ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}
-                      >
-                        {share.shared_with_email}
-                      </div>
-                      <div className="text-xs text-gray-500 flex items-center gap-2">
-                        <span>
-                          {share.access_type === 'full_history'
-                            ? 'Full History'
-                            : 'Single Visit'}
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span
-                          className={
-                            share.status === 'revoked'
-                              ? 'text-red-400'
-                              : 'text-teal-600'
-                          }
+                      {/* Checkbox */}
+                      {!isWarning ? (
+                        <button
+                          onClick={() => toggleChecked(idx)}
+                          className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded-sm flex items-center justify-center border-2 transition-colors ${
+                            isChecked ? 'bg-teal-500 border-teal-500' : ''
+                          }`}
+                          style={!isChecked ? { borderColor: '#0B1929' } : {}}
+                          aria-label={isChecked ? 'Uncheck item' : 'Check item'}
                         >
-                          {share.status.charAt(0).toUpperCase() +
-                            share.status.slice(1)}
+                          {isChecked && (
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                            >
+                              <path
+                                d="M2 6L5 9L10 3"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      ) : (
+                        <div className="w-5 flex-shrink-0" />
+                      )}
+
+                      {/* Icon + Text */}
+                      <div className="flex-1 min-w-0 flex items-start gap-2">
+                        <span className="text-base flex-shrink-0 w-5 text-center">
+                          {style.icon}
+                        </span>
+                        <span
+                          className={`text-sm leading-relaxed break-words ${
+                            isWarning ? 'font-medium' : ''
+                          } ${isChecked ? 'line-through text-gray-400' : ''}`}
+                          style={{ color: isWarning ? '#0B1929' : undefined }}
+                        >
+                          {action.text}
                         </span>
                       </div>
                     </div>
-                  </div>
-                  {share.status !== 'revoked' && (
-                    <button
-                      onClick={() => handleRevoke(share.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                      title="Revoke access"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
       </div>
 
       {isShareModalOpen && (

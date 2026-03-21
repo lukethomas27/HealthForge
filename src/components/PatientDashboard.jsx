@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2 } from 'lucide-react';
+import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2, Settings } from 'lucide-react';
 import ShareModal from './ShareModal';
 import { fetchSharesForPatient, revokeShare } from '../lib/queries';
 
@@ -32,7 +32,7 @@ function sortActions(actions) {
   });
 }
 
-export default function PatientDashboard({ patient, onLogout }) {
+export default function PatientDashboard({ patient, onLogout, onOpenSettings }) {
   const firstName = patient.name?.split(' ')[0] || 'there';
   const sessions = patient.sessions || [];
   const mostRecent = sessions.length > 0 ? sessions[0] : null;
@@ -139,6 +139,13 @@ export default function PatientDashboard({ patient, onLogout }) {
             <div className="flex items-center gap-3 text-sm" style={{ color: '#0B1929' }}>
               <span>{firstName}</span>
               <User size={16} />
+              <button
+                onClick={onOpenSettings}
+                className="text-gray-400 hover:text-teal-600 transition-colors"
+                title="Settings"
+              >
+                <Settings size={18} />
+              </button>
               <button onClick={onLogout} className="text-gray-500 hover:text-gray-700 underline">
                 Sign Out
               </button>
@@ -184,6 +191,13 @@ export default function PatientDashboard({ patient, onLogout }) {
             </button>
             <span>{firstName}</span>
             <User size={16} />
+            <button
+              onClick={onOpenSettings}
+              className="text-gray-400 hover:text-teal-600 transition-colors"
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
             <button onClick={onLogout} className="text-gray-500 hover:text-gray-700 underline">
               Sign Out
             </button>

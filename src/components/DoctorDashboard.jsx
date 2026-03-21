@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, User, ChevronRight, AlertTriangle, Users } from 'lucide-react';
+import { Search, User, ChevronRight, AlertTriangle, Users, Settings } from 'lucide-react';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -28,7 +28,7 @@ function confidenceBadgeClasses(score) {
   return 'border-l-red-400 bg-red-50 text-red-800';
 }
 
-export default function DoctorDashboard({ doctor, patients, onSelectPatient, onLogout }) {
+export default function DoctorDashboard({ doctor, patients, onSelectPatient, onLogout, onOpenSettings }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPatients = patients.filter((p) =>
@@ -54,6 +54,13 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
               <User size={16} />
               <span className="text-sm font-medium">{doctor.name}</span>
             </div>
+            <button
+              onClick={onOpenSettings}
+              className="text-gray-400 hover:text-teal-600 transition-colors duration-200 bg-transparent border-none cursor-pointer"
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
             <button
               onClick={onLogout}
               className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200 bg-transparent border-none cursor-pointer"

@@ -9,6 +9,8 @@ import PatientDetailView from './components/PatientDetailView';
 import PatientDashboard from './components/PatientDashboard';
 import RoleSwitcherDock from './components/RoleSwitcherDock';
 import InvitePage from './components/InvitePage';
+import SettingsPage from './components/SettingsPage';
+import { SettingsProvider } from './context/SettingsContext';
 
 const STYLES = `
 @keyframes fadeIn {
@@ -158,6 +160,7 @@ export default function App() {
             patients={doctorPatients}
             onSelectPatient={handleSelectPatient}
             onLogout={handleLogout}
+            onOpenSettings={() => navigate('settings')}
           />
         );
       case 'doctor-patient-detail':
@@ -173,15 +176,26 @@ export default function App() {
           <PatientDashboard
             patient={currentPatientData}
             onLogout={handleLogout}
+            onOpenSettings={() => navigate('settings')}
           />
         ) : null;
+      case 'settings':
+        return (
+          <SettingsPage
+            currentUser={currentUser}
+            onBack={() => {
+              if (currentUser?.role === 'doctor') navigate('doctor-dashboard');
+              else navigate('patient-dashboard');
+            }}
+          />
+        );
       default:
         return <LandingPage onNavigate={handleRoleSelect} />;
     }
   };
 
   return (
-    <>
+    <SettingsProvider>
       <style>{STYLES}</style>
       <Routes>
         <Route path="/invite/:token" element={<InvitePage />} />
@@ -203,6 +217,6 @@ export default function App() {
           }
         />
       </Routes>
-    </>
+    </SettingsProvider>
   );
 }

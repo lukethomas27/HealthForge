@@ -198,29 +198,6 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
 
                     {/* Right section */}
                     <div className="flex items-center gap-3">
-                      {confidence !== null && confidence !== undefined ? (
-                        <div>
-                          <div
-                            className={`border-l-4 px-3 py-1.5 rounded-r text-sm font-semibold ${confidenceBadgeClasses(confidence)}`}
-                            style={{ fontFamily: "'Courier New', monospace" }}
-                          >
-                            {confidence}
-                          </div>
-                          {settings.criticalScoreAlerts && confidence < 70 && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <AlertTriangle size={12} className="text-red-500" />
-                              <span className="text-xs text-red-500">Review Required</span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div
-                          className="border-l-4 border-l-gray-300 bg-gray-50 text-gray-500 px-3 py-1.5 rounded-r text-sm"
-                          style={{ fontFamily: "'Courier New', monospace" }}
-                        >
-                          --
-                        </div>
-                      )}
                       <ChevronRight size={20} className="text-gray-400" />
                     </div>
                   </div>

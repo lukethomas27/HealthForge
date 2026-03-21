@@ -735,7 +735,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           ) : (
             <div className="bg-white shadow-sm rounded-lg p-6 text-center">
               <CheckCircle size={32} className="text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">No action items yet. They will appear after your first visit.</p>
+              <p className="text-sm text-gray-400">No action items yet. Your checklist will be generated from your doctor&apos;s insights after each visit.</p>
             </div>
           )}
         </div>

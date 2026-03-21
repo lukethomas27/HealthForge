@@ -12,9 +12,11 @@ import {
   Edit3,
   Save,
   X,
+  Mic,
 } from 'lucide-react';
 import { generateInsights } from '../utils/generateInsights';
 import { createSession, updateTranscription, saveInsights } from '../lib/queries';
+import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 
 function ConfidenceGauge({ confidence }) {
   const radius = 48;
@@ -86,6 +88,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
   const [editingSessions, setEditingSessions] = useState({});
   const [editBuffers, setEditBuffers] = useState({});
   const [loadingSessions, setLoadingSessions] = useState({});
+  const [recordingSessionId, setRecordingSessionId] = useState(null);
+
+  const { isRecording, interimText, error: micError, startRecording, stopRecording } = useDeepgramTranscription();
 
   const sessions = [...(patient.sessions || [])].reverse();
   const latestSession = sessions[0] || null;
@@ -167,6 +172,27 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
       console.error('Error creating session:', err);
     }
   }, [patient, onUpdatePatient]);
+
+  const toggleRecording = useCallback((sessionId) => {
+    if (recordingSessionId === sessionId) {
+      stopRecording();
+      setRecordingSessionId(null);
+      return;
+    }
+
+    // Stop any existing recording
+    if (recordingSessionId) {
+      stopRecording();
+    }
+
+    setRecordingSessionId(sessionId);
+    startRecording((finalText) => {
+      setEditBuffers(prev => ({
+        ...prev,
+        [sessionId]: (prev[sessionId] || '') + finalText
+      }));
+    });
+  }, [recordingSessionId, startRecording, stopRecording]);
 
   const confidenceBadgeColor = (c) => {
     if (c >= 70) return 'border-[#00C9A7] text-teal-700 bg-teal-50';
@@ -420,8 +446,19 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
                                 [session.id]: e.target.value,
                               }))
                             }
-                            className="w-full bg-gray-50 p-4 rounded font-mono text-sm border-2 border-teal-400 focus:outline-none resize-y min-h-[120px]"
+                            className={`w-full bg-gray-50 p-4 rounded font-mono text-sm border-2 ${recordingSessionId === session.id ? 'border-red-400' : 'border-teal-400'} focus:outline-none resize-y min-h-[120px]`}
                           />
+                          {recordingSessionId === session.id && interimText && (
+                            <div className="text-sm italic text-gray-500 mt-1 px-1 flex items-center gap-2">
+                              <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                              {interimText}
+                            </div>
+                          )}
+                          {micError && recordingSessionId === session.id && (
+                            <div className="text-sm text-red-600 mt-1 px-1">
+                              ⚠ {micError}
+                            </div>
+                          )}
                           <div className="flex gap-2 mt-2">
                             <button
                               onClick={() => saveEdit(session.id)}
@@ -430,6 +467,17 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
                             >
                               <Save className="w-3.5 h-3.5" />
                               Save
+                            </button>
+                            <button
+                              onClick={() => toggleRecording(session.id)}
+                              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded transition-colors ${
+                                recordingSessionId === session.id
+                                  ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 animate-pulse'
+                                  : 'text-gray-600 border border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <Mic className="w-3.5 h-3.5" />
+                              {recordingSessionId === session.id ? 'Stop Recording' : 'Record'}
                             </button>
                             <button
                               onClick={() => cancelEdit(session.id)}

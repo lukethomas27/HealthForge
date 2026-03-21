@@ -77,9 +77,19 @@ export default function App() {
   const handleSwitchRole = useCallback(async (role) => {
     setSwitchLoading(true);
     try {
-      const doctor = await fetchFirstDoctor();
-      const pts = await fetchPatientsForDoctor(doctor.id);
-      setPatients(pts);
+      // Reuse already-loaded patients so locally-generated insights survive role switches.
+      // Only fetch if we somehow have no data yet.
+      let doctor = currentUser?.role === 'doctor' ? currentUser : null;
+      let pts = patients;
+
+      if (pts.length === 0) {
+        doctor = await fetchFirstDoctor();
+        pts = await fetchPatientsForDoctor(doctor.id);
+        setPatients(pts);
+      } else if (!doctor) {
+        doctor = await fetchFirstDoctor();
+      }
+
       setSelectedPatientId(null);
 
       if (role === 'doctor') {
@@ -94,7 +104,7 @@ export default function App() {
     } finally {
       setSwitchLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, currentUser, patients]);
 
   const handleLogout = useCallback(() => {
     setCurrentUser(null);

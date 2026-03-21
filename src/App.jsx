@@ -1,11 +1,12 @@
 // HealthForge — Main App Shell (Supabase-backed)
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { fetchFirstDoctor, fetchPatientsForDoctor, fetchPatient } from './lib/queries';
 import LandingPage from './components/LandingPage';
 import DoctorDashboard from './components/DoctorDashboard';
 import PatientDetailView from './components/PatientDetailView';
 import PatientDashboard from './components/PatientDashboard';
+import RoleSwitcherDock from './components/RoleSwitcherDock';
 
 const STYLES = `
 @keyframes fadeIn {
@@ -37,6 +38,7 @@ export default function App() {
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [switchLoading, setSwitchLoading] = useState(false);
 
   const navigate = useCallback((newPage, options = {}) => {
     if (options.patientId !== undefined) setSelectedPatientId(options.patientId);
@@ -65,6 +67,28 @@ export default function App() {
       console.error('Login error:', err);
     } finally {
       setLoading(false);
+    }
+  }, [navigate]);
+
+  const handleSwitchRole = useCallback(async (role) => {
+    setSwitchLoading(true);
+    try {
+      const doctor = await fetchFirstDoctor();
+      const pts = await fetchPatientsForDoctor(doctor.id);
+      setPatients(pts);
+      setSelectedPatientId(null);
+
+      if (role === 'doctor') {
+        setCurrentUser(doctor);
+        navigate('doctor-dashboard');
+      } else {
+        setCurrentUser({ ...pts[0], role: 'patient' });
+        navigate('patient-dashboard');
+      }
+    } catch (err) {
+      console.error('Role switch error:', err);
+    } finally {
+      setSwitchLoading(false);
     }
   }, [navigate]);
 
@@ -119,6 +143,8 @@ export default function App() {
     }
   }
 
+  const showDock = page !== 'landing' && currentUser !== null;
+
   const renderPage = () => {
     if (loading) return <LoadingScreen />;
 
@@ -158,6 +184,13 @@ export default function App() {
       <div key={page} style={{ animation: 'fadeIn 150ms ease' }}>
         {renderPage()}
       </div>
+      {showDock && (
+        <RoleSwitcherDock
+          currentUser={currentUser}
+          onSwitchRole={handleSwitchRole}
+          loading={switchLoading}
+        />
+      )}
     </>
   );
 }

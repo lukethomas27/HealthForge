@@ -203,7 +203,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
       </div>
 
       {/* Two-panel layout */}
-      <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-6 py-8 pb-24 flex flex-col lg:flex-row gap-6">
         {/* LEFT PANEL */}
         <div className="lg:w-[35%] lg:sticky lg:top-6 self-start">
           {/* Patient Profile card */}

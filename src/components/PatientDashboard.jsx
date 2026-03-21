@@ -140,7 +140,7 @@ export default function PatientDashboard({ patient, onLogout }) {
       </nav>
 
       {/* Page content */}
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-2xl mx-auto px-6 py-8 pb-24">
         {/* Section 1: How are you doing? */}
         <div className="bg-white shadow-md rounded-lg p-8">
           <h1

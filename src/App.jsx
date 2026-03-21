@@ -1,9 +1,7 @@
-// HealthForge — Main App Shell
-// Components will be built by parallel agents and imported here.
-// This file will be finalized in the integration pass.
+// HealthForge — Main App Shell (Supabase-backed)
 
-import { useState, useCallback } from 'react';
-import { SEED_DATA } from './data/seedData';
+import { useState, useCallback, useEffect } from 'react';
+import { fetchFirstDoctor, fetchPatientsForDoctor, fetchPatient } from './lib/queries';
 import LandingPage from './components/LandingPage';
 import DoctorDashboard from './components/DoctorDashboard';
 import PatientDetailView from './components/PatientDetailView';
@@ -14,38 +12,93 @@ const STYLES = `
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 `;
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F4EF' }}>
+      <div className="text-center">
+        <div
+          className="w-8 h-8 border-3 border-gray-200 rounded-full mx-auto mb-4"
+          style={{ borderTopColor: '#00C9A7', animation: 'spin 0.8s linear infinite' }}
+        />
+        <p className="text-gray-500" style={{ fontFamily: 'system-ui, sans-serif' }}>Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [page, setPage] = useState('landing');
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
-  const [patients, setPatients] = useState(SEED_DATA.patients);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useCallback((newPage, options = {}) => {
     if (options.patientId !== undefined) setSelectedPatientId(options.patientId);
     setPage(newPage);
   }, []);
 
-  const handleRoleSelect = useCallback((role) => {
-    if (role === 'doctor') {
-      setCurrentUser(SEED_DATA.doctor);
-      navigate('doctor-dashboard');
-    } else {
-      setCurrentUser(SEED_DATA.patients[0]);
-      navigate('patient-dashboard');
+  const handleRoleSelect = useCallback(async (role) => {
+    setLoading(true);
+    try {
+      if (role === 'doctor') {
+        const doctor = await fetchFirstDoctor();
+        setCurrentUser(doctor);
+        const pts = await fetchPatientsForDoctor(doctor.id);
+        setPatients(pts);
+        navigate('doctor-dashboard');
+      } else {
+        // Demo: log in as first patient of first doctor
+        const doctor = await fetchFirstDoctor();
+        const pts = await fetchPatientsForDoctor(doctor.id);
+        setPatients(pts);
+        const firstPatient = pts[0];
+        setCurrentUser({ ...firstPatient, role: 'patient' });
+        navigate('patient-dashboard');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     setSelectedPatientId(null);
+    setPatients([]);
     navigate('landing');
   }, [navigate]);
 
   const handleUpdatePatient = useCallback((updatedPatient) => {
     setPatients(prev => prev.map(p => p.id === updatedPatient.id ? updatedPatient : p));
+    // Also update currentUser if they are viewing as this patient
+    setCurrentUser(prev => {
+      if (prev && prev.role === 'patient' && prev.id === updatedPatient.id) {
+        return { ...updatedPatient, role: 'patient' };
+      }
+      return prev;
+    });
   }, []);
+
+  // Refresh patient data when navigating to detail view
+  const handleSelectPatient = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const fresh = await fetchPatient(id);
+      setPatients(prev => prev.map(p => p.id === id ? fresh : p));
+      navigate('doctor-patient-detail', { patientId: id });
+    } catch (err) {
+      console.error('Error fetching patient:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
 
   // Guard: doctor can only see their patients
   const doctorPatients = currentUser?.role === 'doctor'
@@ -60,20 +113,22 @@ export default function App() {
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
   // If selected patient invalid, redirect
-  if (page === 'doctor-patient-detail' && !selectedPatient) {
+  if (page === 'doctor-patient-detail' && !selectedPatient && !loading) {
     if (currentUser?.role === 'doctor') {
       setPage('doctor-dashboard');
     }
   }
 
   const renderPage = () => {
+    if (loading) return <LoadingScreen />;
+
     switch (page) {
       case 'doctor-dashboard':
         return (
           <DoctorDashboard
             doctor={currentUser}
             patients={doctorPatients}
-            onSelectPatient={(id) => navigate('doctor-patient-detail', { patientId: id })}
+            onSelectPatient={handleSelectPatient}
             onLogout={handleLogout}
           />
         );

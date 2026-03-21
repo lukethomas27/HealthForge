@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { generateInsights } from '../utils/generateInsights';
+import { createSession, updateTranscription, saveInsights } from '../lib/queries';
 
 function ConfidenceGauge({ confidence }) {
   const radius = 48;
@@ -86,7 +87,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
   const [editBuffers, setEditBuffers] = useState({});
   const [loadingSessions, setLoadingSessions] = useState({});
 
-  const sessions = patient.sessions || [];
+  const sessions = [...(patient.sessions || [])].reverse();
   const latestSession = sessions[0] || null;
   const latestRisk = latestSession?.insights?.riskLevel || null;
 
@@ -113,10 +114,16 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
   }, []);
 
   const saveEdit = useCallback(
-    (sessionId) => {
+    async (sessionId) => {
+      const newText = editBuffers[sessionId];
+      try {
+        await updateTranscription(sessionId, newText);
+      } catch (err) {
+        console.error('Error saving transcription:', err);
+      }
       const updatedSessions = patient.sessions.map((s) =>
         s.id === sessionId
-          ? { ...s, transcription: editBuffers[sessionId], insights: null }
+          ? { ...s, transcription: newText, insights: null }
           : s
       );
       onUpdatePatient({ ...patient, sessions: updatedSessions });
@@ -134,6 +141,11 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
         patient,
         patient.sessions
       );
+      try {
+        await saveInsights(session.id, insights);
+      } catch (err) {
+        console.error('Error saving insights:', err);
+      }
       const updatedSessions = patient.sessions.map((s) =>
         s.id === session.id ? { ...s, insights } : s
       );
@@ -143,17 +155,17 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
     [patient, onUpdatePatient]
   );
 
-  const addNewSession = useCallback(() => {
-    const newId = `session-${Date.now()}`;
-    const newSession = {
-      id: newId,
-      date: new Date().toISOString().slice(0, 10),
-      transcription: '',
-      insights: null,
-    };
-    const updatedSessions = [newSession, ...patient.sessions];
-    onUpdatePatient({ ...patient, sessions: updatedSessions });
-    setExpandedSessions((prev) => ({ ...prev, [newId]: true }));
+  const addNewSession = useCallback(async () => {
+    try {
+      const newSession = await createSession(patient.id);
+      const updatedSessions = [newSession, ...patient.sessions];
+      onUpdatePatient({ ...patient, sessions: updatedSessions });
+      setExpandedSessions((prev) => ({ ...prev, [newSession.id]: true }));
+      setEditingSessions((prev) => ({ ...prev, [newSession.id]: true }));
+      setEditBuffers((prev) => ({ ...prev, [newSession.id]: '' }));
+    } catch (err) {
+      console.error('Error creating session:', err);
+    }
   }, [patient, onUpdatePatient]);
 
   const confidenceBadgeColor = (c) => {

@@ -1,0 +1,213 @@
+import { supabase } from './supabase';
+
+// Fetch doctor by id
+export async function fetchDoctor(doctorId) {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select('*')
+    .eq('id', doctorId)
+    .single();
+  if (error) throw error;
+  return { ...data, role: 'doctor' };
+}
+
+// Fetch first doctor (for demo login)
+export async function fetchFirstDoctor() {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select('*')
+    .limit(1)
+    .single();
+  if (error) throw error;
+  return { ...data, role: 'doctor' };
+}
+
+// Fetch patients for a doctor, with sessions + insights + actions
+export async function fetchPatientsForDoctor(doctorId) {
+  const { data: patients, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('doctor_id', doctorId);
+  if (error) throw error;
+
+  // For each patient, fetch sessions with insights and actions
+  const fullPatients = await Promise.all(
+    patients.map(async (patient) => {
+      const sessions = await fetchSessionsForPatient(patient.id);
+      return normalizePatient(patient, sessions);
+    })
+  );
+
+  return fullPatients;
+}
+
+// Fetch a single patient with full session data
+export async function fetchPatient(patientId) {
+  const { data: patient, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('id', patientId)
+    .single();
+  if (error) throw error;
+
+  const sessions = await fetchSessionsForPatient(patient.id);
+  return normalizePatient(patient, sessions);
+}
+
+// Fetch sessions for a patient with insights and actions
+async function fetchSessionsForPatient(patientId) {
+  const { data: sessions, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('date', { ascending: true });
+  if (error) throw error;
+
+  const fullSessions = await Promise.all(
+    sessions.map(async (session) => {
+      const { data: insights } = await supabase
+        .from('insights')
+        .select('*')
+        .eq('session_id', session.id)
+        .maybeSingle();
+
+      let actionsForPatient = [];
+      if (insights) {
+        const { data: actions } = await supabase
+          .from('patient_actions')
+          .select('*')
+          .eq('insight_id', insights.id)
+          .order('sort_order', { ascending: true });
+        actionsForPatient = (actions || []).map(a => ({
+          icon: a.icon,
+          text: a.text,
+          category: a.category,
+        }));
+      }
+
+      return {
+        id: session.id,
+        date: session.date,
+        transcription: session.transcription,
+        insights: insights
+          ? {
+              confidence: insights.confidence,
+              riskLevel: insights.risk_level,
+              summary: insights.summary,
+              plainSummary: insights.plain_summary,
+              simpleSummary: insights.simple_summary,
+              differentials: insights.differentials,
+              medicationFlags: insights.medication_flags || [],
+              wearableNote: insights.wearable_note,
+              environmentalNote: insights.environmental_note,
+              actionsForDoctor: insights.actions_for_doctor || [],
+              actionsForPatient,
+              delta: insights.delta,
+            }
+          : null,
+      };
+    })
+  );
+
+  return fullSessions;
+}
+
+// Normalize DB patient row to app shape
+function normalizePatient(dbPatient, sessions) {
+  const dob = dbPatient.dob;
+  const age = Math.floor(
+    (Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+  );
+  return {
+    id: dbPatient.id,
+    name: dbPatient.name,
+    dob,
+    age,
+    email: dbPatient.email,
+    allergies: dbPatient.allergies || [],
+    medications: dbPatient.medications || [],
+    city: dbPatient.city,
+    doctorId: dbPatient.doctor_id,
+    sessions,
+  };
+}
+
+// ============================================
+// WRITE OPERATIONS
+// ============================================
+
+// Create a new session (no insights yet)
+export async function createSession(patientId) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .insert({
+      patient_id: patientId,
+      date: new Date().toISOString().split('T')[0],
+      transcription: '',
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return { id: data.id, date: data.date, transcription: '', insights: null };
+}
+
+// Update session transcription
+export async function updateTranscription(sessionId, transcription) {
+  const { error } = await supabase
+    .from('sessions')
+    .update({ transcription })
+    .eq('id', sessionId);
+  if (error) throw error;
+
+  // Delete old insights when transcription changes
+  await supabase.from('insights').delete().eq('session_id', sessionId);
+}
+
+// Save generated insights for a session
+export async function saveInsights(sessionId, insights) {
+  // Delete existing insights first
+  const { data: existing } = await supabase
+    .from('insights')
+    .select('id')
+    .eq('session_id', sessionId)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from('patient_actions').delete().eq('insight_id', existing.id);
+    await supabase.from('insights').delete().eq('id', existing.id);
+  }
+
+  // Insert new insight
+  const { data: newInsight, error } = await supabase
+    .from('insights')
+    .insert({
+      session_id: sessionId,
+      confidence: insights.confidence,
+      risk_level: insights.riskLevel,
+      summary: insights.summary,
+      plain_summary: insights.plainSummary,
+      simple_summary: insights.simpleSummary,
+      differentials: insights.differentials,
+      medication_flags: insights.medicationFlags,
+      wearable_note: insights.wearableNote,
+      environmental_note: insights.environmentalNote,
+      actions_for_doctor: insights.actionsForDoctor,
+      delta: insights.delta,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+
+  // Insert patient actions
+  if (insights.actionsForPatient?.length) {
+    const rows = insights.actionsForPatient.map((a, i) => ({
+      insight_id: newInsight.id,
+      icon: a.icon,
+      text: a.text,
+      category: a.category,
+      sort_order: i + 1,
+    }));
+    const { error: actErr } = await supabase.from('patient_actions').insert(rows);
+    if (actErr) throw actErr;
+  }
+}

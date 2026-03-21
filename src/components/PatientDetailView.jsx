@@ -83,7 +83,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function PatientDetailView({ patient, onBack, onUpdatePatient }) {
+export default function PatientDetailView({ patient, onBack, onUpdatePatient, onLogout }) {
   const [expandedSessions, setExpandedSessions] = useState({});
   const [editingSessions, setEditingSessions] = useState({});
   const [editBuffers, setEditBuffers] = useState({});
@@ -204,6 +204,21 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF' }}>
+      {/* Navigation bar */}
+      <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
+          <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
+            <span className="animate-pulse" style={{ color: '#00C9A7', fontSize: '12px' }}>●</span>
+            <span
+              className="font-bold text-lg"
+              style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+            >
+              HealthForge
+            </span>
+          </button>
+        </div>
+      </nav>
+
       {/* Top bar */}
       <div className="max-w-7xl mx-auto px-6 pt-8 mb-6">
         <button

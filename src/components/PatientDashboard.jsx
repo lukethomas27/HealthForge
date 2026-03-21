@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2, Settings } from 'lucide-react';
+import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2, Settings, Activity, Wind } from 'lucide-react';
 import ShareModal from './ShareModal';
 import { fetchSharesForPatient, revokeShare } from '../lib/queries';
 
@@ -130,12 +130,12 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
         {/* Nav */}
         <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
           <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
-            <div className="flex items-center gap-2">
+            <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
               <span className="inline-block w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#00C9A7' }} />
               <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
                 HealthForge
               </span>
-            </div>
+            </button>
             <div className="flex items-center gap-3 text-sm" style={{ color: '#0B1929' }}>
               <span>{firstName}</span>
               <User size={16} />
@@ -172,7 +172,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
       {/* Navigation */}
       <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
+          <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
               style={{ backgroundColor: '#00C9A7' }}
@@ -180,7 +180,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
             <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
               HealthForge
             </span>
-          </div>
+          </button>
           <div className="flex items-center gap-3 text-sm" style={{ color: '#0B1929' }}>
             <button 
               onClick={() => openShareModal()}
@@ -243,11 +243,97 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
             </p>
           )}
 
+          {mostRecentInsights?.medicationFlags?.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {mostRecentInsights.medicationFlags.map((flag, i) => (
+                <div key={i} className="flex items-start gap-2 bg-amber-50 border-l-4 border-amber-400 rounded-r p-3">
+                  <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-amber-800">{flag}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {mostRecent?.date && (
             <p className="text-sm text-gray-400">
               Last visit: {formatDate(mostRecent.date)} with Dr. Emily Chen
             </p>
           )}
+        </div>
+
+        {/* Your Health Profile */}
+        <div className="mt-6 bg-white shadow-md rounded-lg p-6">
+          <h2
+            className="text-xl font-bold mb-4"
+            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+          >
+            Your health profile
+          </h2>
+
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Allergies</p>
+          <div className="flex flex-wrap gap-1 mb-4">
+            {(patient.allergies || []).map((a, i) => (
+              <span key={i} className="border border-red-300 text-red-700 bg-red-50 rounded px-2 py-0.5 text-sm">{a}</span>
+            ))}
+            {(!patient.allergies || patient.allergies.length === 0) && (
+              <span className="text-sm text-gray-400">None recorded</span>
+            )}
+          </div>
+
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Current Medications</p>
+          <div className="space-y-1">
+            {(patient.medications || []).map((m, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-gray-400">💊</span> {m}
+              </div>
+            ))}
+            {(!patient.medications || patient.medications.length === 0) && (
+              <span className="text-sm text-gray-400">None recorded</span>
+            )}
+          </div>
+        </div>
+
+        {/* Your Wellness Data */}
+        <div className="mt-4 bg-white shadow-md rounded-lg p-6">
+          <h2
+            className="text-xl font-bold mb-4"
+            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+          >
+            Your wellness data
+          </h2>
+
+          <div className="flex items-center gap-2 mb-3">
+            <Activity size={16} className="text-teal-600" />
+            <h3 className="text-sm font-semibold" style={{ color: '#0B1929' }}>From Your Devices</h3>
+          </div>
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Resting HR</span>
+              <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>68 bpm</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Sleep average</span>
+              <span className="text-sm font-medium" style={{ fontFamily: "'Courier New', monospace" }}>7.1 hrs</span>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 my-4" />
+
+          <div className="flex items-center gap-2 mb-3">
+            <Wind size={16} className="text-teal-600" />
+            <h3 className="text-sm font-semibold" style={{ color: '#0B1929' }}>Today&apos;s Environment</h3>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Air Quality</span>
+              <span className="text-teal-600 text-sm font-medium">Good (AQI 42)</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Pollen</span>
+              <span className="text-amber-600 text-sm font-medium">Moderate</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-3">Based on your location: {patient.city}</p>
         </div>
 
         {/* Section 2: Today's Action Plan */}
@@ -436,6 +522,14 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                       <div className="bg-gray-50 p-4 rounded leading-relaxed text-gray-700">
                         {getInsightText(insights, currentLevel)}
                       </div>
+
+                      {/* Session delta */}
+                      {insights.delta && (
+                        <div className="mt-4 bg-blue-50 p-3 rounded text-sm text-blue-800">
+                          <span className="font-medium">Changes since last visit: </span>
+                          {insights.delta}
+                        </div>
+                      )}
 
                       {/* Action items for this session */}
                       {sessionActions.length > 0 && (

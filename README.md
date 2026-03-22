@@ -1,6 +1,6 @@
-# MediBridge (HealthForge)
+# HealthForge
 
-**MediBridge** is a modern healthcare communication platform designed to solve the "information gap" in patient care. Research shows that patients retain less than 20% of what they are told during medical appointments. MediBridge bridges this gap by transforming complex clinical consultations into actionable, plain-language health plans for patients, while providing doctors with high-fidelity transcriptions and AI-assisted diagnostic insights.
+**HealthForge** is a modern healthcare communication platform designed to solve the "information gap" in patient care. Research shows that patients retain less than 20% of what they are told during medical appointments. MediBridge bridges this gap by transforming complex clinical consultations into actionable, plain-language health plans for patients, while providing doctors with high-fidelity transcriptions and AI-assisted diagnostic insights.
 
 ## 🚀 Key Features
 

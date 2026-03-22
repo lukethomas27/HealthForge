@@ -88,13 +88,21 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
     loadShares();
   }, [loadShares]);
 
+  const [shareError, setShareError] = useState(null);
+  const [revokingId, setRevokingId] = useState(null);
+
   const handleRevoke = async (shareId) => {
     if (!confirm('Are you sure you want to revoke access?')) return;
+    setRevokingId(shareId);
+    setShareError(null);
     try {
       await revokeShare(shareId);
       loadShares();
     } catch (err) {
       console.error('Error revoking share:', err);
+      setShareError('Failed to revoke access. Please try again.');
+    } finally {
+      setRevokingId(null);
     }
   };
 
@@ -351,8 +359,9 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Current Medications</p>
             <div className="space-y-1">
               {(patient.medications || []).map((m, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                  <span className="text-gray-400">💊</span> {m}
+                <div key={i} className="flex items-center gap-2 text-sm text-gray-700 min-w-0">
+                  <span className="text-gray-400 flex-shrink-0">💊</span>
+                  <span className="truncate" title={m}>{m}</span>
                 </div>
               ))}
               {(!patient.medications || patient.medications.length === 0) && (
@@ -416,6 +425,9 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                   Manage Access
                 </h2>
               </div>
+              {shareError && (
+                <div className="px-4 py-2 bg-red-50 text-xs text-red-600">{shareError}</div>
+              )}
               <div className="divide-y divide-gray-50">
                 {shares.map((share) => (
                   <div
@@ -430,7 +442,8 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                       </div>
                       <div>
                         <div
-                          className={`text-sm font-medium ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}
+                          className={`text-sm font-medium truncate max-w-[180px] ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}
+                          title={share.shared_with_email}
                         >
                           {share.shared_with_email}
                         </div>
@@ -457,7 +470,8 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                     {share.status !== 'revoked' && (
                       <button
                         onClick={() => handleRevoke(share.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        disabled={revokingId === share.id}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Revoke access"
                       >
                         <Trash2 size={16} />

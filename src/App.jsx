@@ -1,6 +1,6 @@
 // HealthForge — Main App Shell (Supabase-backed)
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { fetchFirstDoctor, fetchPatientsForDoctor, fetchPatient } from './lib/queries';
 import LandingPage from './components/LandingPage';
@@ -19,6 +19,13 @@ const STYLES = `
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 `;
 
@@ -43,6 +50,7 @@ export default function App() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [switchLoading, setSwitchLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const navigate = useCallback((newPage, options = {}) => {
     if (options.patientId !== undefined) setSelectedPatientId(options.patientId);
@@ -51,6 +59,7 @@ export default function App() {
 
   const handleRoleSelect = useCallback(async (role) => {
     setLoading(true);
+    setError(null);
     try {
       if (role === 'doctor') {
         const doctor = await fetchFirstDoctor();
@@ -69,6 +78,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Login error:', err);
+      setError('Unable to connect. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -76,6 +86,7 @@ export default function App() {
 
   const handleSwitchRole = useCallback(async (role) => {
     setSwitchLoading(true);
+    setError(null);
     try {
       // Reuse already-loaded patients so locally-generated insights survive role switches.
       // Only fetch if we somehow have no data yet.
@@ -101,6 +112,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Role switch error:', err);
+      setError('Failed to switch roles. Please try again.');
     } finally {
       setSwitchLoading(false);
     }
@@ -133,6 +145,7 @@ export default function App() {
       navigate('doctor-patient-detail', { patientId: id });
     } catch (err) {
       console.error('Error fetching patient:', err);
+      setError('Failed to load patient data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -214,6 +227,12 @@ export default function App() {
           path="*"
           element={
             <>
+              {error && (
+                <div className="fixed top-0 left-0 right-0 z-50 bg-red-50 border-b border-red-200 px-6 py-3 flex items-center justify-between" role="alert">
+                  <p className="text-sm text-red-700">{error}</p>
+                  <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 text-lg font-bold ml-4">&times;</button>
+                </div>
+              )}
               <div key={page} style={{ animation: 'fadeIn 150ms ease' }}>
                 {renderPage()}
               </div>

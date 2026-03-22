@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Search, User, ChevronRight, AlertTriangle, Users, Settings } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -40,9 +40,17 @@ function riskBadgeClasses(level) {
 export default function DoctorDashboard({ doctor, patients, onSelectPatient, onLogout, onOpenSettings }) {
   const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimer = useRef(null);
 
-  const filteredPatients = patients
-    .filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(value), 200);
+  };
+
+  const filteredPatients = useMemo(() => patients
+    .filter((p) => p.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     .sort((a, b) => {
       if (settings.patientSortOrder === 'nameAZ') {
         return a.name.localeCompare(b.name);
@@ -64,7 +72,9 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
         return latest ? new Date(latest.date).getTime() : 0;
       };
       return getLatestDate(b) - getLatestDate(a);
-    });
+    }), [patients, debouncedSearch, settings.patientSortOrder]);
+
+  const isSearchActive = debouncedSearch.length > 0;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF', fontFamily: 'system-ui, sans-serif' }}>
@@ -121,7 +131,8 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
               type="text"
               placeholder="Search patients..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              maxLength={100}
               className="w-64 border border-gray-300 rounded-sm pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200"
               style={{ fontFamily: 'system-ui, sans-serif' }}
             />
@@ -136,9 +147,13 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
               className="text-lg font-semibold text-gray-400 mb-1"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              No patients found
+              {isSearchActive ? 'No matching patients' : 'No patients yet'}
             </p>
-            <p className="text-sm text-gray-400">Try a different search term</p>
+            <p className="text-sm text-gray-400">
+              {isSearchActive
+                ? `No results for "${debouncedSearch}". Try a different search term.`
+                : 'Your patient list will appear here once patients are assigned.'}
+            </p>
           </div>
         ) : (
           <div>
@@ -165,8 +180,9 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p
-                          className="text-lg font-bold"
+                          className="text-lg font-bold truncate max-w-[200px]"
                           style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+                          title={patient.name}
                         >
                           {patient.name}
                         </p>
@@ -176,7 +192,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500" style={{ fontFamily: 'system-ui, sans-serif' }}>
+                      <p className="text-sm text-gray-500 truncate" style={{ fontFamily: 'system-ui, sans-serif' }}>
                         {patient.age} years old &middot; {patient.city}
                       </p>
                       <p className="text-sm text-gray-400" style={{ fontFamily: 'system-ui, sans-serif' }}>

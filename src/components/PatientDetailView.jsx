@@ -28,13 +28,16 @@ import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 import { useSettings } from '../context/SettingsContext';
 
 function ConfidenceGauge({ confidence }) {
+  const safeConfidence = typeof confidence === 'number' && !isNaN(confidence)
+    ? Math.max(0, Math.min(100, confidence))
+    : 0;
   const radius = 48;
   const strokeWidth = 8;
   const size = 120;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (confidence / 100) * circumference;
+  const offset = circumference - (safeConfidence / 100) * circumference;
   const color =
-    confidence >= 70 ? '#00C9A7' : confidence >= 50 ? '#F59E0B' : '#F87171';
+    safeConfidence >= 70 ? '#00C9A7' : safeConfidence >= 50 ? '#F59E0B' : '#F87171';
 
   return (
     <div className="flex flex-col items-center my-4">
@@ -72,7 +75,7 @@ function ConfidenceGauge({ confidence }) {
             fill: '#0B1929',
           }}
         >
-          {confidence}
+          {safeConfidence}
         </text>
       </svg>
       <span className="text-xs text-gray-500 mt-1">AI Confidence</span>
@@ -106,10 +109,14 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
   const [editBuffers, setEditBuffers] = useState({});
   const [loadingSessions, setLoadingSessions] = useState({});
   const [recordingSessionId, setRecordingSessionId] = useState(null);
+  const [savingSessions, setSavingSessions] = useState({});
+  const [approvingSessions, setApprovingSessions] = useState({});
+  const [addingSession, setAddingSession] = useState(false);
 
   // For doctor addendum
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteBuffer, setNoteBuffer] = useState('');
+  const [operationError, setOperationError] = useState(null);
 
   const autoSaveTimers = useRef({});
 
@@ -146,19 +153,25 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
 
   const saveEdit = useCallback(
     async (sessionId) => {
+      if (savingSessions[sessionId]) return;
+      setSavingSessions((prev) => ({ ...prev, [sessionId]: true }));
       const newText = editBuffers[sessionId];
       try {
         await updateTranscription(sessionId, newText);
       } catch (err) {
         console.error('Error saving transcription:', err);
+        setOperationError('Failed to save transcription. Please try again.');
+        setSavingSessions((prev) => ({ ...prev, [sessionId]: false }));
+        return;
       }
       const updatedSessions = patient.sessions.map((s) =>
         s.id === sessionId ? { ...s, transcription: newText, insights: null } : s
       );
       onUpdatePatient({ ...patient, sessions: updatedSessions });
       setEditingSessions((prev) => ({ ...prev, [sessionId]: false }));
+      setSavingSessions((prev) => ({ ...prev, [sessionId]: false }));
     },
-    [patient, editBuffers, onUpdatePatient]
+    [patient, editBuffers, onUpdatePatient, savingSessions]
   );
 
   const handleGenerateInsights = useCallback(
@@ -178,6 +191,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
         onUpdatePatient({ ...patient, sessions: updatedSessions });
       } catch (err) {
         console.error('Error generating insights:', err);
+        setOperationError('Failed to generate insights. Please try again.');
       } finally {
         setLoadingSessions((prev) => ({ ...prev, [session.id]: false }));
       }
@@ -186,6 +200,8 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
   );
 
   const addNewSession = useCallback(async () => {
+    if (addingSession) return;
+    setAddingSession(true);
     try {
       const newSession = await createSession(patient.id);
       const updatedSessions = [newSession, ...patient.sessions];
@@ -195,8 +211,11 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       setEditBuffers((prev) => ({ ...prev, [newSession.id]: '' }));
     } catch (err) {
       console.error('Error creating session:', err);
+      setOperationError('Failed to create session. Please try again.');
+    } finally {
+      setAddingSession(false);
     }
-  }, [patient, onUpdatePatient]);
+  }, [patient, onUpdatePatient, addingSession]);
 
   const handleTranscriptionChange = useCallback(
     (sessionId, value) => {
@@ -259,11 +278,14 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       setEditingNoteId(null);
     } catch (err) {
       console.error('Error saving doctor note:', err);
+      setOperationError('Failed to save addendum. Please try again.');
     }
   };
 
   const handleApproveInsights = useCallback(
     async (sessionId) => {
+      if (approvingSessions[sessionId]) return;
+      setApprovingSessions((prev) => ({ ...prev, [sessionId]: true }));
       try {
         await approveInsights(sessionId);
         const updatedSessions = patient.sessions.map((s) =>
@@ -274,9 +296,12 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
         onUpdatePatient({ ...patient, sessions: updatedSessions });
       } catch (err) {
         console.error('Error approving insights:', err);
+        setOperationError('Failed to approve insights. Please try again.');
+      } finally {
+        setApprovingSessions((prev) => ({ ...prev, [sessionId]: false }));
       }
     },
-    [patient, onUpdatePatient]
+    [patient, onUpdatePatient, approvingSessions]
   );
 
   const confidenceBadgeColor = (c) => {
@@ -310,6 +335,19 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
         </div>
       </nav>
 
+      {/* Error banner */}
+      {operationError && (
+        <div className="max-w-7xl mx-auto px-6 mt-4" role="alert">
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700">{operationError}</p>
+            </div>
+            <button onClick={() => setOperationError(null)} className="text-red-400 hover:text-red-600 text-lg font-bold ml-4">&times;</button>
+          </div>
+        </div>
+      )}
+
       {/* Top bar */}
       <div className="max-w-7xl mx-auto px-6 pt-8 mb-6">
         <button
@@ -321,8 +359,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
         </button>
         <div className="flex items-center gap-3">
           <h1
-            className="text-[28px]"
+            className="text-[28px] truncate max-w-[400px]"
             style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+            title={patient.name}
           >
             {patient.name}
           </h1>
@@ -380,9 +419,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
             </p>
             <div className="space-y-1">
               {(patient.medications || []).map((m, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                  <Pill className="w-3.5 h-3.5 text-gray-400" />
-                  {m}
+                <div key={i} className="flex items-center gap-2 text-sm text-gray-700 min-w-0">
+                  <Pill className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                  <span className="truncate" title={m}>{m}</span>
                 </div>
               ))}
               {(!patient.medications || patient.medications.length === 0) && (
@@ -474,11 +513,12 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
           <div className="flex justify-end mb-4">
             <button
               onClick={addNewSession}
-              className="flex items-center gap-2 rounded-sm px-4 py-2 text-white text-sm font-medium"
+              disabled={addingSession}
+              className="flex items-center gap-2 rounded-sm px-4 py-2 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#00C9A7' }}
             >
               <Plus className="w-4 h-4" />
-              New Session
+              {addingSession ? 'Creating...' : 'New Session'}
             </button>
           </div>
 
@@ -571,11 +611,12 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                           <div className="flex gap-2 mt-2">
                             <button
                               onClick={() => saveEdit(session.id)}
-                              className="flex items-center gap-1 text-sm text-white px-3 py-1.5 rounded"
+                              disabled={savingSessions[session.id]}
+                              className="flex items-center gap-1 text-sm text-white px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                               style={{ backgroundColor: '#00C9A7' }}
                             >
                               <Save className="w-3.5 h-3.5" />
-                              Save
+                              {savingSessions[session.id] ? 'Saving...' : 'Save'}
                             </button>
                             <button
                               onClick={() => toggleRecording(session.id)}
@@ -695,9 +736,11 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                               <textarea
                                 value={noteBuffer}
                                 onChange={(e) => setNoteBuffer(e.target.value)}
+                                maxLength={2000}
                                 placeholder="Add your clinical confirmation or corrections here..."
                                 className="w-full bg-white border border-teal-200 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[100px]"
                               />
+                              <p className="text-xs text-gray-400 mt-1 text-right">{noteBuffer.length}/2000</p>
                               <div className="flex gap-2 mt-2">
                                 <button
                                   onClick={() => handleSaveNote(session.id)}
@@ -762,12 +805,12 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                                     key={i}
                                     className="text-sm text-gray-700 flex items-baseline gap-2"
                                   >
-                                    <span className="text-gray-400 text-xs">
+                                    <span className="text-gray-400 text-xs flex-shrink-0">
                                       {i + 1}.
                                     </span>
-                                    <span>{d.label}</span>
+                                    <span className="truncate min-w-0" title={d.label}>{d.label}</span>
                                     <span
-                                      className="ml-auto text-xs font-medium"
+                                      className="ml-auto text-xs font-medium flex-shrink-0"
                                       style={{
                                         fontFamily: "'Courier New', monospace",
                                       }}
@@ -905,22 +948,26 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                       <div className="mt-4 space-y-2">
                         <button
                           onClick={() => handleGenerateInsights(session)}
-                          className="w-full py-3 text-white text-sm font-medium rounded"
+                          disabled={loadingSessions[session.id]}
+                          className="w-full py-3 text-white text-sm font-medium rounded disabled:opacity-50 disabled:cursor-not-allowed"
                           style={{ backgroundColor: '#0B1929' }}
                         >
-                          {insights
-                            ? 'Regenerate Insights'
-                            : 'Generate AI Insights'}
+                          {loadingSessions[session.id]
+                            ? 'Generating...'
+                            : insights
+                              ? 'Regenerate Insights'
+                              : 'Generate AI Insights'}
                         </button>
 
                         {/* Approve / Release to patient */}
                         {insights && !insights.approved && (
                           <button
                             onClick={() => handleApproveInsights(session.id)}
-                            className="w-full py-3 text-white text-sm font-medium rounded bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                            disabled={approvingSessions[session.id]}
+                            className="w-full py-3 text-white text-sm font-medium rounded bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <CheckCircle className="w-4 h-4" />
-                            Approve &amp; Release to Patient
+                            {approvingSessions[session.id] ? 'Approving...' : 'Approve & Release to Patient'}
                           </button>
                         )}
                         {insights?.approved && (

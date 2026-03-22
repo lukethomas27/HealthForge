@@ -133,7 +133,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               maxLength={100}
-              className="w-64 border border-gray-300 rounded-sm pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200"
+              className="w-64 border border-gray-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200"
               style={{ fontFamily: 'system-ui, sans-serif' }}
             />
           </div>
@@ -173,7 +173,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
                 <div
                   key={patient.id}
                   onClick={() => onSelectPatient(patient.id)}
-                  className="bg-white shadow-sm rounded-lg p-5 mb-3 hover:shadow-md transition-all duration-200 cursor-pointer border-l-2 border-l-transparent hover:border-l-[#0B1929]"
+                  className="bg-white shadow-sm rounded-lg p-6 mb-3 hover:shadow-md transition-all duration-200 cursor-pointer border-l-2 border-l-transparent hover:border-l-[#0B1929]"
                 >
                   <div className="flex items-center">
                     {/* Left section */}

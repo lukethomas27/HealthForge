@@ -213,9 +213,9 @@ export default function SettingsPage({ currentUser, onBack }) {
                 <button
                   onClick={handleCleanup}
                   disabled={cleaning}
-                  className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all duration-200 ${
-                    cleaning 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+                    cleaning
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
                   }`}
                 >

@@ -524,7 +524,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
             <button
               onClick={addNewSession}
               disabled={addingSession}
-              className="flex items-center gap-2 rounded-sm px-4 py-2 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-lg px-4 py-2 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#00C9A7' }}
             >
               <Plus className="w-4 h-4" />
@@ -622,7 +622,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                             <button
                               onClick={() => saveEdit(session.id)}
                               disabled={savingSessions[session.id]}
-                              className="flex items-center gap-1 text-sm text-white px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center gap-1 text-sm text-white px-3 py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                               style={{ backgroundColor: '#00C9A7' }}
                             >
                               <Save className="w-3.5 h-3.5" />
@@ -630,9 +630,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                             </button>
                             <button
                               onClick={() => toggleRecording(session.id)}
-                              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded transition-colors ${recordingSessionId === session.id
+                              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition-colors ${recordingSessionId === session.id
                                   ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 animate-pulse'
-                                  : 'text-gray-600 border border-gray-300 hover:bg-gray-50'
+                                  : 'text-gray-600 border border-gray-200 hover:bg-gray-50'
                                 }`}
                             >
                               <Mic className="w-3.5 h-3.5" />
@@ -640,7 +640,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                             </button>
                             <button
                               onClick={() => cancelEdit(session.id)}
-                              className="flex items-center gap-1 text-sm text-gray-600 px-3 py-1.5 rounded border border-gray-300"
+                              className="flex items-center gap-1 text-sm text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200"
                             >
                               <X className="w-3.5 h-3.5" />
                               Cancel
@@ -754,13 +754,13 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                               <div className="flex gap-2 mt-2">
                                 <button
                                   onClick={() => handleSaveNote(session.id)}
-                                  className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded font-medium"
+                                  className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg font-medium"
                                 >
                                   Save Addendum
                                 </button>
                                 <button
                                   onClick={() => setEditingNoteId(null)}
-                                  className="text-xs text-gray-500 px-3 py-1.5 rounded font-medium border border-gray-200"
+                                  className="text-xs text-gray-500 px-3 py-1.5 rounded-lg font-medium border border-gray-200"
                                 >
                                   Cancel
                                 </button>
@@ -959,7 +959,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                         <button
                           onClick={() => handleGenerateInsights(session)}
                           disabled={loadingSessions[session.id]}
-                          className="w-full py-3 text-white text-sm font-medium rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full py-3 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                           style={{ backgroundColor: '#0B1929' }}
                         >
                           {loadingSessions[session.id]
@@ -974,7 +974,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                           <button
                             onClick={() => handleApproveInsights(session.id)}
                             disabled={approvingSessions[session.id]}
-                            className="w-full py-3 text-white text-sm font-medium rounded bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-3 text-white text-sm font-medium rounded-lg bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <CheckCircle className="w-4 h-4" />
                             {approvingSessions[session.id] ? 'Approving...' : 'Approve & Release to Patient'}

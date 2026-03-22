@@ -82,9 +82,9 @@ export default function InvitePage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F4EF] p-6">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
           <AlertCircle className="text-red-500 mx-auto mb-4" size={48} />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Invite Expired</h2>
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>Invite Expired</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.href = '/'}
@@ -103,14 +103,14 @@ export default function InvitePage() {
     <div className="min-h-screen pb-12" style={{ backgroundColor: '#F7F4EF', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-16">
+        <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-teal-500" />
             <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
               HealthForge Shared
             </span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
+          <div className="flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm font-medium">
             <Shield size={14} />
             Secure Access
           </div>
@@ -118,7 +118,7 @@ export default function InvitePage() {
       </nav>
 
       <div className="max-w-2xl mx-auto px-6 mt-8">
-        <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h1 className="text-2xl mb-2" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
             Health Update: {patient.name}
           </h1>
@@ -140,14 +140,14 @@ export default function InvitePage() {
             const sessionActions = insights?.actionsForPatient || [];
 
             return (
-              <div key={session.id} className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-100">
+              <div key={session.id} className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
                 <button
                   onClick={() => toggleSession(session.id)}
                   className="w-full text-left p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-bold text-gray-900 mb-1">{formatDate(session.date)}</div>
+                      <div className="font-bold mb-1" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>{formatDate(session.date)}</div>
                       <div className="text-sm text-gray-500">Visit with Dr. Emily Chen</div>
                       {!isExpanded && insights?.plainSummary && (
                         <p className="text-sm text-gray-600 mt-2 line-clamp-2 break-words italic">
@@ -162,7 +162,7 @@ export default function InvitePage() {
                 </button>
 
                 {isExpanded && insights && (
-                  <div className="px-6 pb-6 border-t border-gray-50 bg-white">
+                  <div className="px-6 pb-6 border-t border-gray-100 bg-white">
                     {/* Reading Level Tabs */}
                     <div className="flex gap-4 mb-4 mt-4">
                       {['simple', 'plain', 'detail'].map((level) => (

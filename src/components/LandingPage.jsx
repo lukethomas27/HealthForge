@@ -14,8 +14,8 @@ function LandingPage({ onNavigate }) {
       `}</style>
 
       {/* Navigation Bar */}
-      <nav className="sticky top-0 bg-white border-b border-gray-200 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 bg-white border-b border-gray-200 z-10">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
@@ -83,14 +83,14 @@ function LandingPage({ onNavigate }) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <button
               onClick={() => onNavigate('doctor')}
-              className="px-8 py-3 rounded-sm text-white font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
+              className="px-8 py-3 rounded-lg text-white font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
               style={{ backgroundColor: '#0B1929' }}
             >
               {"I'm a Doctor \u2192"}
             </button>
             <button
               onClick={() => onNavigate('patient')}
-              className="px-8 py-3 rounded-sm font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
+              className="px-8 py-3 rounded-lg font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
               style={{ backgroundColor: '#00C9A7', color: '#0B1929' }}
             >
               {"I'm a Patient \u2192"}
@@ -173,7 +173,7 @@ function LandingPage({ onNavigate }) {
           </p>
           <button
             onClick={() => onNavigate('doctor')}
-            className="px-8 py-3 rounded-sm bg-white font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
+            className="px-8 py-3 rounded-lg bg-white font-medium cursor-pointer border-none transition-all duration-200 hover:opacity-90"
             style={{ color: '#0B1929' }}
           >
             Get Started

@@ -245,7 +245,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           <div className="flex items-center gap-3 text-sm" style={{ color: '#0B1929' }}>
             <button
               onClick={() => openShareModal()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full font-medium hover:bg-teal-100 transition-colors mr-2"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 rounded-lg font-medium hover:bg-teal-100 transition-colors mr-2"
             >
               <Share2 size={14} />
               Share History
@@ -387,7 +387,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
             <div className="flex items-center gap-2 mb-2">
               <Activity size={14} className="text-teal-600" />
-              <h3 className="text-xs font-semibold" style={{ color: '#0B1929' }}>From Your Devices</h3>
+              <h3 className="text-xs font-semibold" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>From Your Devices</h3>
             </div>
             <div className="space-y-2 mb-3">
               <div className="flex justify-between items-center">
@@ -404,7 +404,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
             <div className="flex items-center gap-2 mb-2">
               <Wind size={14} className="text-teal-600" />
-              <h3 className="text-xs font-semibold" style={{ color: '#0B1929' }}>Today&apos;s Environment</h3>
+              <h3 className="text-xs font-semibold" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>Today&apos;s Environment</h3>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -421,8 +421,8 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
           {/* Family Sharing / Manage Access */}
           {shares.length > 0 && (
-            <div className="mt-4 bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
-              <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+            <div className="mt-4 bg-white rounded-lg shadow-md border border-teal-100 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <h2
                   className="text-sm font-bold flex items-center gap-2"
                   style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
@@ -434,7 +434,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
               {shareError && (
                 <div className="px-4 py-2 bg-red-50 text-xs text-red-600">{shareError}</div>
               )}
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100">
                 {shares.map((share) => (
                   <div
                     key={share.id}
@@ -512,7 +512,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
               const sessionActions = insights?.actionsForPatient || [];
 
               return (
-                <div key={session.id} className="bg-white shadow-sm rounded-lg p-5">
+                <div key={session.id} className="bg-white shadow-sm rounded-lg p-6">
                   {/* Collapsed header */}
                   <div className="flex items-start gap-3">
                     <button

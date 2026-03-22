@@ -27,6 +27,16 @@ import {
 import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 import { useSettings } from '../context/SettingsContext';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 function ConfidenceGauge({ confidence }) {
   const safeConfidence = typeof confidence === 'number' && !isNaN(confidence)
     ? Math.max(0, Math.min(100, confidence))
@@ -128,7 +138,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
     stopRecording,
   } = useDeepgramTranscription();
 
-  const sessions = [...(patient.sessions || [])].reverse();
+  const sessions = patient.sessions || [];
   const latestSession = sessions[0] || null;
   const latestRisk = latestSession?.insights?.riskLevel || null;
 
@@ -551,7 +561,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                         className="font-semibold text-sm"
                         style={{ color: '#0B1929' }}
                       >
-                        {session.date}
+                        {formatDate(session.date)}
                       </span>
                       <span className="text-xs text-gray-400">
                         Session #{sessionNumber}
